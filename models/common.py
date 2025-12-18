@@ -2055,8 +2055,12 @@ class SpatialAttention(nn.Module):
         return self.sigmoid(x)
 
 class CBAM(nn.Module):
-    def __init__(self, c1, c2, ratio=16, kernel_size=7):  # c1, c2: input/output channels
+    # SỬA Ở ĐÂY: Thêm c2=None để tránh lỗi thiếu tham số
+    def __init__(self, c1, c2=None, ratio=16, kernel_size=7):
         super(CBAM, self).__init__()
+        # Nếu YOLO không truyền c2, ta tự gán c2 = c1
+        if c2 is None: c2 = c1 
+        
         self.channel_attention = ChannelAttention(c1, ratio)
         self.spatial_attention = SpatialAttention(kernel_size)
 
@@ -2067,9 +2071,11 @@ class CBAM(nn.Module):
 
 # 2. ECA (Efficient Channel Attention)
 class ECA(nn.Module):
-    def __init__(self, c1, c2, k_size=None): 
+    # SỬA Ở ĐÂY: Thêm c2=None
+    def __init__(self, c1, c2=None, k_size=None): 
         super(ECA, self).__init__()
-        # Tự động tính kernel size dựa trên số channel (theo paper)
+        # c2 không dùng trong thuật toán ECA nhưng cần có để khớp với YOLO parser
+        
         if k_size is None:
             gamma = 2
             b = 1
@@ -2105,9 +2111,12 @@ class h_swish(nn.Module):
         return x * self.sigmoid(x)
 
 class CoordAtt(nn.Module):
-    def __init__(self, inp, oup, reduction=32):
+    # SỬA Ở ĐÂY: inp, oup=None
+    def __init__(self, inp, oup=None, reduction=32):
         super(CoordAtt, self).__init__()
-        # inp: input channels, oup: output channels
+        # Nếu thiếu output channels, tự lấy bằng input
+        if oup is None: oup = inp
+        
         self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
         self.pool_w = nn.AdaptiveAvgPool2d((1, None))
 
